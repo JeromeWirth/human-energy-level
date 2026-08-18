@@ -18,7 +18,11 @@ export interface EnergyEvent {
   levelAfter: number;
 }
 
+export const DEFAULT_BASELINE_LEVEL = 70;
+
 export interface EnergyState {
+  /** Level the replay starts from, before any event's delta is applied. */
+  baselineLevel: number;
   level: number;
   events: EnergyEvent[];
   onboarded: boolean;
