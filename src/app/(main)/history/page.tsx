@@ -7,7 +7,7 @@ import { Pressable } from "@/components/Pressable";
 import { buildHistorySeries, WINDOW_OPTIONS, WindowDays } from "@/lib/history";
 
 export default function HistoryPage() {
-  const { events, level, deleteEvent, startEditingEvent, hydrated } = useEnergy();
+  const { events, level, startEditingEvent, hydrated } = useEnergy();
   const [windowDays, setWindowDays] = useState<WindowDays>(7);
 
   const points = useMemo(
@@ -74,22 +74,13 @@ export default function HistoryPage() {
                   </p>
                 </div>
               </Pressable>
-              <div className="flex items-center gap-3 pl-2">
-                <p
-                  className={`text-sm font-semibold ${
-                    e.delta > 0 ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {e.delta > 0 ? `+${e.delta}` : e.delta}
-                </p>
-                <button
-                  onClick={() => deleteEvent(e.id)}
-                  aria-label="Delete entry"
-                  className="text-foreground/30 text-lg leading-none"
-                >
-                  ×
-                </button>
-              </div>
+              <p
+                className={`text-sm font-semibold pl-2 ${
+                  e.delta > 0 ? "text-green-600" : "text-red-500"
+                }`}
+              >
+                {e.delta > 0 ? `+${e.delta}` : e.delta}
+              </p>
             </li>
           ))}
         </ul>

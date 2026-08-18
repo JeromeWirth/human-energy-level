@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 export default function GlobalError({
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
+
   function resetData() {
     try {
       window.localStorage.clear();
@@ -27,18 +31,41 @@ export default function GlobalError({
         happening.
       </p>
       <div className="flex flex-col gap-2 w-full max-w-xs mt-2">
-        <button
-          onClick={reset}
-          className="w-full bg-foreground text-background rounded-lg py-3 font-medium"
-        >
-          Try again
-        </button>
-        <button
-          onClick={resetData}
-          className="w-full border border-foreground/20 rounded-lg py-3 font-medium text-red-500"
-        >
-          Reset app data
-        </button>
+        {confirming ? (
+          <>
+            <p className="text-sm text-red-500">
+              This erases all your data on this device. This can&apos;t be
+              undone.
+            </p>
+            <button
+              onClick={resetData}
+              className="w-full bg-red-500 text-white rounded-lg py-3 font-medium"
+            >
+              Yes, erase everything
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="w-full text-foreground/50 text-sm py-1"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={reset}
+              className="w-full bg-foreground text-background rounded-lg py-3 font-medium"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => setConfirming(true)}
+              className="w-full border border-foreground/20 rounded-lg py-3 font-medium text-red-500"
+            >
+              Reset app data
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
