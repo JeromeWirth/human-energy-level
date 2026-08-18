@@ -1,5 +1,13 @@
 import { EnergyEvent } from "./types";
 import { isToday } from "./day-groups";
+import {
+  isFiniteNumber,
+  isBoundedString,
+  clampLevel,
+  MAX_TEXT_LENGTH,
+  MAX_EMOJI_LENGTH,
+  MAX_USERNAME_LENGTH,
+} from "./decode-utils";
 
 export interface DaySnapshotEvent {
   emoji: string;
@@ -15,6 +23,12 @@ export interface DaySnapshot {
   username: string;
   events: DaySnapshotEvent[];
 }
+
+// A day's worth of logging is realistically under 20 events; 100 leaves
+// generous headroom. Decoded server-side per request, so both caps also
+// bound the work an arbitrary URL can make the server do.
+const MAX_SNAPSHOT_EVENTS = 100;
+const MAX_CODE_LENGTH = 20_000;
 
 export function buildDaySnapshot(
   level: number,
@@ -58,10 +72,25 @@ export function encodeDaySnapshot(snapshot: DaySnapshot): string {
   return toBase64Url(binary);
 }
 
+function isValidSnapshotEvent(value: unknown): value is DaySnapshotEvent {
+  if (typeof value !== "object" || value === null) return false;
+  const e = value as Record<string, unknown>;
+  return (
+    isBoundedString(e.emoji, MAX_EMOJI_LENGTH) &&
+    isBoundedString(e.label, MAX_TEXT_LENGTH) &&
+    isFiniteNumber(e.delta) &&
+    isFiniteNumber(e.timestamp) &&
+    (e.note === undefined || isBoundedString(e.note, MAX_TEXT_LENGTH))
+  );
+}
+
 /** Decodes a day-snapshot code, or null if it's invalid. */
 export function decodeDaySnapshot(code: string): DaySnapshot | null {
+  const trimmed = code.trim();
+  if (trimmed.length === 0 || trimmed.length > MAX_CODE_LENGTH) return null;
+
   try {
-    const binary = fromBase64Url(code.trim());
+    const binary = fromBase64Url(trimmed);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
@@ -71,13 +100,22 @@ export function decodeDaySnapshot(code: string): DaySnapshot | null {
     if (
       typeof parsed !== "object" ||
       parsed === null ||
-      typeof parsed.level !== "number" ||
-      !Array.isArray(parsed.events)
+      !isFiniteNumber(parsed.level) ||
+      !isFiniteNumber(parsed.generatedAt) ||
+      !isBoundedString(parsed.username, MAX_USERNAME_LENGTH) ||
+      !Array.isArray(parsed.events) ||
+      parsed.events.length > MAX_SNAPSHOT_EVENTS ||
+      !parsed.events.every(isValidSnapshotEvent)
     ) {
       return null;
     }
 
-    return parsed as DaySnapshot;
+    return {
+      level: clampLevel(parsed.level),
+      generatedAt: parsed.generatedAt,
+      username: parsed.username,
+      events: parsed.events,
+    };
   } catch {
     return null;
   }
