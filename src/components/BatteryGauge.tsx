@@ -1,38 +1,60 @@
 import { batteryColor, batteryStatusLabel } from "@/lib/categories";
 
+// Drawing geometry is computed once at a fixed base size; different `size`
+// values only change the CSS display width/height, never the SVG's own
+// coordinate system. That makes the rendered size a plain CSS property, so
+// it can be smoothly transitioned (e.g. shrinking into a compact header).
+const BASE_WIDTH = 260;
+const BASE_HEIGHT = BASE_WIDTH * 0.46;
+const VIEWBOX_HEIGHT = BASE_HEIGHT + 8;
+
+const DISPLAY_WIDTH = { lg: 260, md: 190, sm: 140, xs: 90 } as const;
+const FONT_SIZE = { lg: 40, md: 30, sm: 22, xs: 16 } as const;
+
 export function BatteryGauge({
   level,
   size = "lg",
   showStatus = true,
+  layout = "column",
 }: {
   level: number;
-  size?: "lg" | "sm";
+  size?: "lg" | "md" | "sm" | "xs";
   showStatus?: boolean;
+  layout?: "column" | "row";
 }) {
   const color = batteryColor(level);
-  const width = size === "lg" ? 260 : 140;
-  const height = width * 0.46;
-  const bodyWidth = width * 0.92;
-  const nubWidth = width * 0.05;
-  const padding = height * 0.12;
+  const bodyWidth = BASE_WIDTH * 0.92;
+  const nubWidth = BASE_WIDTH * 0.05;
+  const padding = BASE_HEIGHT * 0.12;
   const innerWidth = bodyWidth - padding * 2;
-  const innerHeight = height - padding * 2;
+  const innerHeight = BASE_HEIGHT - padding * 2;
   const fillWidth = (innerWidth * level) / 100;
 
+  const displayWidth = DISPLAY_WIDTH[size];
+  const displayHeight = (displayWidth / BASE_WIDTH) * VIEWBOX_HEIGHT;
+  const isRow = layout === "row";
+
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div
+      className={`flex ${
+        isRow ? "flex-row items-center gap-3" : "flex-col items-center gap-3"
+      }`}
+    >
       <svg
-        width={width}
-        height={height + 8}
-        viewBox={`0 0 ${width} ${height + 8}`}
-        className="drop-shadow-sm"
+        viewBox={`0 0 ${BASE_WIDTH} ${VIEWBOX_HEIGHT}`}
+        style={{
+          width: displayWidth,
+          height: displayHeight,
+          transition: "width 300ms ease, height 300ms ease",
+        }}
+        className="drop-shadow-sm shrink-0"
       >
         <rect
           x={1}
           y={1}
           width={bodyWidth - 2}
-          height={height - 2}
-          rx={height * 0.16}
+          height={BASE_HEIGHT - 2}
+          rx={BASE_HEIGHT * 0.16}
           fill="none"
           stroke="currentColor"
           strokeOpacity={0.35}
@@ -58,23 +80,37 @@ export function BatteryGauge({
         />
         <rect
           x={bodyWidth}
-          y={height / 2 - (height * 0.28) / 2}
+          y={BASE_HEIGHT / 2 - (BASE_HEIGHT * 0.28) / 2}
           width={nubWidth}
-          height={height * 0.28}
+          height={BASE_HEIGHT * 0.28}
           rx={nubWidth * 0.4}
           fill="currentColor"
           opacity={0.35}
         />
       </svg>
-      <div className="flex flex-col items-center gap-0.5">
+      <div
+        className={`flex flex-col ${
+          isRow ? "items-start gap-0" : "items-center gap-0.5"
+        }`}
+      >
         <span
           className="font-bold tabular-nums"
-          style={{ color, fontSize: size === "lg" ? 40 : 22 }}
+          style={{
+            color,
+            fontSize: FONT_SIZE[size],
+            transition: "font-size 300ms ease",
+          }}
         >
           {Math.round(level)}%
         </span>
-        {size === "lg" && showStatus && (
-          <span className="text-sm text-foreground/60">
+        {showStatus && (
+          <span
+            className="text-foreground/60"
+            style={{
+              fontSize: isRow ? 12 : 14,
+              transition: "font-size 300ms ease",
+            }}
+          >
             {batteryStatusLabel(level)}
           </span>
         )}

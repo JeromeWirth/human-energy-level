@@ -3,6 +3,7 @@ import { BatteryGauge } from "./BatteryGauge";
 import { batteryColor } from "@/lib/categories";
 import { EnergyEvent } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
+import { isToday } from "@/lib/day-groups";
 
 const MAX_VISIBLE_EVENTS = 5;
 const CARD_WIDTH = 380;
@@ -17,8 +18,9 @@ export const ShareCard = forwardRef<
     month: "long",
     day: "numeric",
   });
-  const visible = events.slice(0, MAX_VISIBLE_EVENTS);
-  const hiddenCount = events.length - visible.length;
+  const todaysEvents = events.filter((e) => isToday(e.timestamp));
+  const visible = todaysEvents.slice(0, MAX_VISIBLE_EVENTS);
+  const hiddenCount = todaysEvents.length - visible.length;
 
   return (
     <div
@@ -53,26 +55,14 @@ export const ShareCard = forwardRef<
         </p>
       </div>
 
-      <div style={{ position: "relative", marginTop: 20, marginBottom: 24 }}>
-        <BatteryGauge level={level} size="lg" />
+      <div style={{ position: "relative", marginTop: 16, marginBottom: 20 }}>
+        <BatteryGauge level={level} size="md" />
       </div>
 
       <div style={{ position: "relative", width: "100%" }}>
-        <p
-          style={{
-            fontSize: 12,
-            letterSpacing: 0.5,
-            opacity: 0.5,
-            margin: "0 0 10px",
-            textTransform: "uppercase",
-          }}
-        >
-          Recent activity
-        </p>
-
         {visible.length === 0 ? (
           <p style={{ fontSize: 13, opacity: 0.4, margin: 0, textAlign: "center" }}>
-            No activity logged yet.
+            Nothing logged today yet.
           </p>
         ) : (
           visible.map((e, i) => (
@@ -80,7 +70,7 @@ export const ShareCard = forwardRef<
               key={e.id}
               style={{
                 display: "flex",
-                alignItems: "center",
+                alignItems: "flex-start",
                 justifyContent: "space-between",
                 border: "1px solid color-mix(in srgb, var(--foreground) 12%, transparent)",
                 borderRadius: 12,
@@ -88,22 +78,42 @@ export const ShareCard = forwardRef<
                 marginTop: i === 0 ? 0 : 8,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <span style={{ fontSize: 18, marginRight: 10 }}>{e.emoji}</span>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{e.label}</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  flex: "1 1 auto",
+                  minWidth: 0,
+                  paddingRight: 10,
+                }}
+              >
+                <span style={{ fontSize: 18, marginRight: 10, lineHeight: 1.3 }}>
+                  {e.emoji}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
+                    {e.label}
+                  </p>
+                  {e.note && (
+                    <p style={{ fontSize: 11, opacity: 0.6, margin: "2px 0 0" }}>
+                      {e.note}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <p
                   style={{
                     fontSize: 13,
                     fontWeight: 700,
                     margin: 0,
+                    whiteSpace: "nowrap",
                     color: e.delta > 0 ? "#16a34a" : "#ef4444",
                   }}
                 >
                   {e.delta > 0 ? `+${e.delta}` : e.delta}
                 </p>
-                <p style={{ fontSize: 10, opacity: 0.5, margin: 0 }}>
+                <p style={{ fontSize: 10, opacity: 0.5, margin: 0, whiteSpace: "nowrap" }}>
                   {timeAgo(e.timestamp)}
                 </p>
               </div>

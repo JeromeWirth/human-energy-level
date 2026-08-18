@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { BatteryHistoryChart } from "@/components/BatteryHistoryChart";
+import { Pressable } from "@/components/Pressable";
 import { buildHistorySeries, WINDOW_OPTIONS, WindowDays } from "@/lib/history";
 
 export default function HistoryPage() {
-  const { events, level, deleteEvent, hydrated } = useEnergy();
+  const { events, level, deleteEvent, startEditingEvent, hydrated } = useEnergy();
   const [windowDays, setWindowDays] = useState<WindowDays>(7);
 
   const points = useMemo(
@@ -51,14 +52,19 @@ export default function HistoryPage() {
           {events.map((e) => (
             <li
               key={e.id}
-              className="flex items-center justify-between border border-foreground/10 rounded-xl px-3 py-2.5"
+              className="flex items-center justify-between border border-foreground/10 rounded-xl pl-3 pr-2 py-2.5 overflow-hidden hover:bg-foreground/5 transition-colors"
             >
-              <div className="flex items-center gap-2.5">
+              <Pressable
+                onClick={() => startEditingEvent(e)}
+                className="flex-1 flex items-center gap-2.5 text-left min-w-0"
+              >
                 <span className="text-xl">{e.emoji}</span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium">{e.label}</p>
                   {e.note && (
-                    <p className="text-xs text-foreground/50">{e.note}</p>
+                    <p className="text-xs text-foreground/50 truncate">
+                      {e.note}
+                    </p>
                   )}
                   <p className="text-xs text-foreground/40">
                     {new Date(e.timestamp).toLocaleString(undefined, {
@@ -67,8 +73,8 @@ export default function HistoryPage() {
                     })}
                   </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
+              </Pressable>
+              <div className="flex items-center gap-3 pl-2">
                 <p
                   className={`text-sm font-semibold ${
                     e.delta > 0 ? "text-green-600" : "text-red-500"

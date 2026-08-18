@@ -54,7 +54,17 @@ interface EnergyContextValue {
     note?: string,
     timestamp?: number
   ) => void;
+  updateEvent: (
+    id: string,
+    category: Category,
+    delta: number,
+    note?: string,
+    timestamp?: number
+  ) => void;
   deleteEvent: (id: string) => void;
+  editingEvent: EnergyEvent | null;
+  startEditingEvent: (event: EnergyEvent) => void;
+  stopEditingEvent: () => void;
   onboarded: boolean;
   completeOnboarding: (level: number) => void;
   hydrated: boolean;
@@ -65,6 +75,7 @@ const EnergyContext = createContext<EnergyContextValue | null>(null);
 export function EnergyProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<EnergyState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<EnergyEvent | null>(null);
 
   useEffect(() => {
     try {
@@ -116,6 +127,38 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function updateEvent(
+    id: string,
+    category: Category,
+    delta: number,
+    note?: string,
+    timestamp?: number
+  ) {
+    setState((prev) => {
+      const existing = prev.events.find((e) => e.id === id);
+      if (!existing) return prev;
+      const levelWithoutOld = clamp(prev.level - existing.delta);
+      const newLevel = clamp(levelWithoutOld + delta);
+      const updated: EnergyEvent = {
+        ...existing,
+        categoryId: category.id,
+        label: category.label,
+        emoji: category.emoji,
+        delta,
+        note: note?.trim() ? note.trim() : undefined,
+        timestamp: timestamp ?? existing.timestamp,
+        levelAfter: newLevel,
+      };
+      return {
+        ...prev,
+        level: newLevel,
+        events: prev.events
+          .map((e) => (e.id === id ? updated : e))
+          .sort((a, b) => b.timestamp - a.timestamp),
+      };
+    });
+  }
+
   function deleteEvent(id: string) {
     setState((prev) => {
       const event = prev.events.find((e) => e.id === id);
@@ -138,7 +181,11 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         level: state.level,
         events: state.events,
         addEvent,
+        updateEvent,
         deleteEvent,
+        editingEvent,
+        startEditingEvent: setEditingEvent,
+        stopEditingEvent: () => setEditingEvent(null),
         onboarded: state.onboarded,
         completeOnboarding,
         hydrated,

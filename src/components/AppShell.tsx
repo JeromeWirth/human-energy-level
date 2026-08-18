@@ -4,7 +4,7 @@ import { ReactNode, useState } from "react";
 import { EnergyProvider, useEnergy } from "@/lib/energy-context";
 import { BottomNav } from "./BottomNav";
 import { Fab } from "./Fab";
-import { AddEventSheet } from "./AddEventSheet";
+import { EventSheet } from "./EventSheet";
 import { ShareModal } from "./ShareModal";
 import { OnboardingScreen } from "./OnboardingScreen";
 
@@ -17,12 +17,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function AppShellInner({ children }: { children: ReactNode }) {
-  const { hydrated, onboarded } = useEnergy();
+  const { hydrated, onboarded, editingEvent, stopEditingEvent } = useEnergy();
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
   if (!hydrated) return null;
   if (!onboarded) return <OnboardingScreen />;
+
+  function closeEventSheet() {
+    setAddOpen(false);
+    stopEditingEvent();
+  }
 
   return (
     <>
@@ -45,7 +50,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
       <Fab onClick={() => setAddOpen(true)} />
       <BottomNav />
 
-      {addOpen && <AddEventSheet onClose={() => setAddOpen(false)} />}
+      {(addOpen || editingEvent) && (
+        <EventSheet event={editingEvent ?? undefined} onClose={closeEventSheet} />
+      )}
       {shareOpen && <ShareModal onClose={() => setShareOpen(false)} />}
     </>
   );

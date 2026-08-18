@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
-import { Category } from "@/lib/types";
+import { Category, EnergyEvent } from "@/lib/types";
 import { CATEGORIES, intensityLabel } from "@/lib/categories";
 
 function toLocalInputValue(date: Date): string {
@@ -10,22 +10,56 @@ function toLocalInputValue(date: Date): string {
   return local.toISOString().slice(0, 16);
 }
 
-export function AddEventSheet({ onClose }: { onClose: () => void }) {
-  const { addEvent } = useEnergy();
-  const [selected, setSelected] = useState<Category | null>(null);
-  const [delta, setDelta] = useState(0);
-  const [note, setNote] = useState("");
-  const [when, setWhen] = useState(() => toLocalInputValue(new Date()));
+function categoryForEvent(event: EnergyEvent): Category {
+  return (
+    CATEGORIES.find((c) => c.id === event.categoryId) ?? {
+      id: event.categoryId,
+      label: event.label,
+      emoji: event.emoji,
+      description: "",
+      defaultDelta: event.delta,
+    }
+  );
+}
+
+export function EventSheet({
+  event,
+  onClose,
+}: {
+  event?: EnergyEvent;
+  onClose: () => void;
+}) {
+  const { addEvent, updateEvent, deleteEvent } = useEnergy();
+  const isEditing = Boolean(event);
+  const [selected, setSelected] = useState<Category | null>(
+    event ? categoryForEvent(event) : null
+  );
+  const [delta, setDelta] = useState(event?.delta ?? 0);
+  const [note, setNote] = useState(event?.note ?? "");
+  const [when, setWhen] = useState(() =>
+    toLocalInputValue(event ? new Date(event.timestamp) : new Date())
+  );
 
   function select(category: Category) {
     setSelected(category);
-    setDelta(category.defaultDelta);
+    if (!isEditing) setDelta(category.defaultDelta);
   }
 
   function save() {
     if (!selected) return;
     const parsed = when ? new Date(when).getTime() : NaN;
-    addEvent(selected, delta, note, Number.isNaN(parsed) ? Date.now() : parsed);
+    const timestamp = Number.isNaN(parsed) ? Date.now() : parsed;
+    if (event) {
+      updateEvent(event.id, selected, delta, note, timestamp);
+    } else {
+      addEvent(selected, delta, note, timestamp);
+    }
+    onClose();
+  }
+
+  function remove() {
+    if (!event) return;
+    deleteEvent(event.id);
     onClose();
   }
 
@@ -39,9 +73,13 @@ export function AddEventSheet({ onClose }: { onClose: () => void }) {
       <div className="relative bg-background rounded-t-2xl max-h-[85vh] overflow-y-auto p-5 pb-8 flex flex-col gap-5">
         <div className="mx-auto w-10 h-1 rounded-full bg-foreground/20" />
         <div>
-          <h2 className="text-lg font-semibold">What happened?</h2>
+          <h2 className="text-lg font-semibold">
+            {isEditing ? "Edit entry" : "What happened?"}
+          </h2>
           <p className="text-sm text-foreground/50 mt-0.5">
-            Pick a category, then say how it went.
+            {isEditing
+              ? "Change the details or how it went."
+              : "Pick a category, then say how it went."}
           </p>
         </div>
 
@@ -120,8 +158,16 @@ export function AddEventSheet({ onClose }: { onClose: () => void }) {
               onClick={save}
               className="w-full bg-foreground text-background rounded-lg py-3 font-medium"
             >
-              Save
+              {isEditing ? "Save changes" : "Save"}
             </button>
+            {isEditing && (
+              <button
+                onClick={remove}
+                className="w-full text-red-500 rounded-lg py-2.5 font-medium"
+              >
+                Delete entry
+              </button>
+            )}
           </div>
         )}
       </div>
