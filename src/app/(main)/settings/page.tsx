@@ -5,7 +5,13 @@ import { useEnergy } from "@/lib/energy-context";
 import { BackupSheet } from "@/components/BackupSheet";
 
 export default function SettingsPage() {
-  const { username, setUsername, hydrated } = useEnergy();
+  const {
+    username,
+    setUsername,
+    hideNotesInShares,
+    setHideNotesInShares,
+    hydrated,
+  } = useEnergy();
   // null = no local edit yet, so the field tracks the saved username as it
   // loads in from storage; once the user types, their draft takes over.
   const [draft, setDraft] = useState<string | null>(null);
@@ -50,6 +56,25 @@ export default function SettingsPage() {
             {saved ? "Saved!" : "Save"}
           </button>
         </div>
+      </section>
+
+      <section className="border-t border-foreground/10 pt-6">
+        <h2 className="text-sm font-medium text-foreground/60 mb-1">
+          Privacy
+        </h2>
+        <p className="text-xs text-foreground/45 mb-3">
+          Notes can get personal. Keep them off the pictures and links you
+          share.
+        </p>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={hideNotesInShares}
+            onChange={(e) => setHideNotesInShares(e.target.checked)}
+            className="accent-foreground"
+          />
+          Hide notes when sharing
+        </label>
       </section>
 
       <section className="border-t border-foreground/10 pt-6">

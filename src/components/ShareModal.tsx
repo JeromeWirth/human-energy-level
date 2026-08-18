@@ -7,12 +7,11 @@ import { ShareCard } from "./ShareCard";
 import { buildDaySnapshot, encodeDaySnapshot } from "@/lib/day-share";
 
 export function ShareModal({ onClose }: { onClose: () => void }) {
-  const { level, events, username } = useEnergy();
+  const { level, events, username, hideNotesInShares } = useEnergy();
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [includeNotes, setIncludeNotes] = useState(false);
 
   async function generate(): Promise<Blob | null> {
     if (!cardRef.current) return null;
@@ -63,7 +62,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
 
   function buildLink(): string {
     const code = encodeDaySnapshot(
-      buildDaySnapshot(level, events, username, includeNotes)
+      buildDaySnapshot(level, events, username, !hideNotesInShares)
     );
     return `${window.location.origin}/day/${code}`;
   }
@@ -110,10 +109,22 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
         <h2 className="text-lg font-semibold self-start">Share your energy</h2>
 
         <div className="rounded-xl overflow-hidden shadow-md scale-90 origin-top">
-          <ShareCard ref={cardRef} level={level} events={events} />
+          <ShareCard
+            ref={cardRef}
+            level={level}
+            events={events}
+            hideNotes={hideNotesInShares}
+          />
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <p className="text-xs text-foreground/45 text-center px-4">
+          {hideNotesInShares
+            ? "Notes stay out of what you share."
+            : "Notes are included in what you share."}{" "}
+          Change this in Settings.
+        </p>
 
         <div className="w-full flex flex-col gap-2">
           <button
@@ -137,15 +148,6 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             <div className="flex-1 h-px bg-foreground/10" />
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-foreground/70 px-1">
-            <input
-              type="checkbox"
-              checked={includeNotes}
-              onChange={(e) => setIncludeNotes(e.target.checked)}
-              className="accent-foreground"
-            />
-            Include notes in the link
-          </label>
           <button
             onClick={handleShareLink}
             className="w-full border border-foreground/20 rounded-lg py-3 font-medium"
@@ -153,9 +155,8 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             {linkCopied ? "Link copied!" : "Share a live link"}
           </button>
           <p className="text-xs text-foreground/40 text-center px-4">
-            The chat preview only shows your battery level. The link itself
-            shows today&apos;s events{includeNotes ? " and notes" : ""} and
-            never expires — anyone who has it can view it anytime.
+            The chat preview only shows your battery level. This link never
+            expires — anyone who has it can view it anytime.
           </p>
         </div>
       </div>
