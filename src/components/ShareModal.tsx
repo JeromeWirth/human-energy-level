@@ -15,10 +15,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
 
   async function generate(): Promise<Blob | null> {
     if (!cardRef.current) return null;
-    const dataUrl = await toPng(cardRef.current, {
-      pixelRatio: 3,
-      cacheBust: true,
-    });
+    const dataUrl = await toPng(cardRef.current, { pixelRatio: 3 });
     const res = await fetch(dataUrl);
     return res.blob();
   }

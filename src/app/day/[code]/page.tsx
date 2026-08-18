@@ -14,7 +14,7 @@ export async function generateMetadata({
   const snapshot = decodeDaySnapshot(code);
   const level = snapshot ? Math.round(snapshot.level) : null;
   const label = snapshot?.username
-    ? `${snapshot.username} Energy Level`
+    ? `${snapshot.username}'s Energy Level`
     : "Shared Energy Level";
 
   return {
@@ -51,7 +51,7 @@ export default async function DaySharePage({ params }: { params: Params }) {
     day: "numeric",
   });
   const label = snapshot.username
-    ? `${snapshot.username} Energy Level`
+    ? `${snapshot.username}'s Energy Level`
     : "Shared Energy Level";
 
   return (

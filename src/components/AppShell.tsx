@@ -23,7 +23,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const pathname = usePathname();
-  const title = username ? `${username} Energy Level` : "Energy Level";
+  const title = username ? `${username}'s Energy Level` : "Energy Level";
 
   useEffect(() => {
     if (!hydrated) return;
