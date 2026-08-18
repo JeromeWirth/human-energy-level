@@ -101,6 +101,15 @@ export default async function Image({
         </div>
       </div>
     ),
-    size
+    {
+      ...size,
+      // The image is a pure function of `code`, so it's safe to cache
+      // per-URL at the CDN indefinitely — ImageResponse otherwise defaults
+      // to `max-age=0, must-revalidate`, meaning zero CDN caching and a
+      // fresh serverless render on every single request.
+      headers: {
+        "Cache-Control": "public, immutable, no-transform, s-maxage=31536000",
+      },
+    }
   );
 }
