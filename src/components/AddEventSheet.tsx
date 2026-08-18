@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { Category } from "@/lib/types";
+import { CATEGORIES, intensityLabel } from "@/lib/categories";
 
 function toLocalInputValue(date: Date): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -10,14 +11,11 @@ function toLocalInputValue(date: Date): string {
 }
 
 export function AddEventSheet({ onClose }: { onClose: () => void }) {
-  const { allCategories, addEvent } = useEnergy();
+  const { addEvent } = useEnergy();
   const [selected, setSelected] = useState<Category | null>(null);
   const [delta, setDelta] = useState(0);
   const [note, setNote] = useState("");
   const [when, setWhen] = useState(() => toLocalInputValue(new Date()));
-
-  const draining = allCategories.filter((c) => c.defaultDelta < 0);
-  const charging = allCategories.filter((c) => c.defaultDelta >= 0);
 
   function select(category: Category) {
     setSelected(category);
@@ -40,36 +38,51 @@ export function AddEventSheet({ onClose }: { onClose: () => void }) {
       />
       <div className="relative bg-background rounded-t-2xl max-h-[85vh] overflow-y-auto p-5 pb-8 flex flex-col gap-5">
         <div className="mx-auto w-10 h-1 rounded-full bg-foreground/20" />
-        <h2 className="text-lg font-semibold">What happened?</h2>
+        <div>
+          <h2 className="text-lg font-semibold">What happened?</h2>
+          <p className="text-sm text-foreground/50 mt-0.5">
+            Pick a category, then say how it went.
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-foreground/50 mb-2">
-              Drains energy
-            </p>
-            <ChipGrid
-              categories={draining}
-              selectedId={selected?.id}
-              onSelect={select}
-            />
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-foreground/50 mb-2">
-              Charges energy
-            </p>
-            <ChipGrid
-              categories={charging}
-              selectedId={selected?.id}
-              onSelect={select}
-            />
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => select(c)}
+              className={`flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left ${
+                selected?.id === c.id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-foreground/15"
+              }`}
+            >
+              <span className="text-base font-medium">
+                {c.emoji} {c.label}
+              </span>
+              <span
+                className={`text-xs ${
+                  selected?.id === c.id
+                    ? "text-background/70"
+                    : "text-foreground/50"
+                }`}
+              >
+                {c.description}
+              </span>
+            </button>
+          ))}
         </div>
 
         {selected && (
           <div className="flex flex-col gap-4 border-t border-foreground/10 pt-4">
             <label className="flex flex-col gap-1.5">
               <span className="text-sm text-foreground/70">
-                Energy change: {delta > 0 ? `+${delta}` : delta}
+                {selected.emoji} {selected.label} &middot;{" "}
+                <strong
+                  className={delta >= 0 ? "text-green-600" : "text-red-500"}
+                >
+                  {intensityLabel(delta)}
+                </strong>{" "}
+                ({delta > 0 ? `+${delta}` : delta})
               </span>
               <input
                 type="range"
@@ -112,35 +125,6 @@ export function AddEventSheet({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function ChipGrid({
-  categories,
-  selectedId,
-  onSelect,
-}: {
-  categories: Category[];
-  selectedId?: string;
-  onSelect: (c: Category) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {categories.map((c) => (
-        <button
-          key={c.id}
-          onClick={() => onSelect(c)}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${
-            selectedId === c.id
-              ? "border-foreground bg-foreground text-background"
-              : "border-foreground/15"
-          }`}
-        >
-          <span>{c.emoji}</span>
-          {c.label}
-        </button>
-      ))}
     </div>
   );
 }

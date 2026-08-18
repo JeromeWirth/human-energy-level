@@ -2,8 +2,8 @@ export interface Category {
   id: string;
   label: string;
   emoji: string;
+  description: string;
   defaultDelta: number;
-  isCustom: boolean;
 }
 
 export interface EnergyEvent {
@@ -14,11 +14,12 @@ export interface EnergyEvent {
   delta: number;
   note?: string;
   timestamp: number;
+  /** Battery level immediately after this event was logged, 0-100. */
+  levelAfter: number;
 }
 
 export interface EnergyState {
   level: number;
   events: EnergyEvent[];
-  customCategories: Category[];
   onboarded: boolean;
 }
