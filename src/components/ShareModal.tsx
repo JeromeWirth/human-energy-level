@@ -12,6 +12,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [includeNotes, setIncludeNotes] = useState(false);
 
   async function generate(): Promise<Blob | null> {
     if (!cardRef.current) return null;
@@ -61,7 +62,9 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
   }
 
   function buildLink(): string {
-    const code = encodeDaySnapshot(buildDaySnapshot(level, events, username));
+    const code = encodeDaySnapshot(
+      buildDaySnapshot(level, events, username, includeNotes)
+    );
     return `${window.location.origin}/day/${code}`;
   }
 
@@ -134,6 +137,15 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             <div className="flex-1 h-px bg-foreground/10" />
           </div>
 
+          <label className="flex items-center gap-2 text-sm text-foreground/70 px-1">
+            <input
+              type="checkbox"
+              checked={includeNotes}
+              onChange={(e) => setIncludeNotes(e.target.checked)}
+              className="accent-foreground"
+            />
+            Include notes in the link
+          </label>
           <button
             onClick={handleShareLink}
             className="w-full border border-foreground/20 rounded-lg py-3 font-medium"
@@ -141,8 +153,9 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             {linkCopied ? "Link copied!" : "Share a live link"}
           </button>
           <p className="text-xs text-foreground/40 text-center px-4">
-            Shows just the battery as a preview — they see today&apos;s full
-            list only if they tap through.
+            The chat preview only shows your battery level. The link itself
+            shows today&apos;s events{includeNotes ? " and notes" : ""} and
+            never expires — anyone who has it can view it anytime.
           </p>
         </div>
       </div>
