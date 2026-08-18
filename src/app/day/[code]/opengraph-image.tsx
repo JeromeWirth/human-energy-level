@@ -22,7 +22,7 @@ export default async function Image({
   const status = batteryStatusLabel(level);
   const fillWidth = Math.max(6, Math.round(((BATTERY_W - PAD * 2) * level) / 100));
   const label = snapshot?.username
-    ? `${snapshot.username.toUpperCase()} ENERGY LEVEL`
+    ? `${snapshot.username.toUpperCase()}'S ENERGY LEVEL`
     : "MY ENERGY LEVEL";
 
   return new ImageResponse(

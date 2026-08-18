@@ -45,7 +45,7 @@ export function buildHistorySeries(
   const startLevel =
     before.length > 0
       ? before[before.length - 1].levelAfter
-      : ascending[0].levelAfter - ascending[0].delta;
+      : Math.min(100, Math.max(0, ascending[0].levelAfter - ascending[0].delta));
 
   const points: HistoryPoint[] = [
     { timestamp: windowStart, level: startLevel },
