@@ -21,17 +21,21 @@ export function decodeState(code: string): EnergyState | null {
     }
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
 
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      typeof parsed.level !== "number" ||
-      !Array.isArray(parsed.events)
-    ) {
+    if (typeof parsed !== "object" || parsed === null || !Array.isArray(parsed.events)) {
+      return null;
+    }
+
+    // Older backup codes only carried the current `level`, not a baseline —
+    // fall back to it as an approximation so pre-existing codes still import.
+    const rawBaseline =
+      typeof parsed.baselineLevel === "number" ? parsed.baselineLevel : parsed.level;
+    if (typeof rawBaseline !== "number") {
       return null;
     }
 
     return {
-      level: parsed.level,
+      baselineLevel: rawBaseline,
+      level: rawBaseline,
       events: parsed.events,
       onboarded: true,
       username: typeof parsed.username === "string" ? parsed.username : "",

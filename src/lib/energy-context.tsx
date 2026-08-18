@@ -7,14 +7,14 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { Category, EnergyEvent, EnergyState } from "./types";
+import { Category, EnergyEvent, EnergyState, DEFAULT_BASELINE_LEVEL } from "./types";
 import { encodeState, decodeState } from "./backup-code";
 
 const STORAGE_KEY = "hel-energy-state-v1";
-const BASELINE_LEVEL = 70;
 
 const DEFAULT_STATE: EnergyState = {
-  level: BASELINE_LEVEL,
+  baselineLevel: DEFAULT_BASELINE_LEVEL,
+  level: DEFAULT_BASELINE_LEVEL,
   events: [],
   onboarded: false,
   username: "",
@@ -24,27 +24,28 @@ function clamp(value: number): number {
   return Math.min(100, Math.max(0, value));
 }
 
-// Events saved before `levelAfter` existed don't have it. Replay them in
-// chronological order from the baseline so the history chart has a real
-// (if approximate, for that legacy stretch) value to plot instead of NaN.
-function backfillLevels(events: EnergyEvent[]): EnergyEvent[] {
-  const needsBackfill = events.some(
-    (e) => typeof e.levelAfter !== "number" || Number.isNaN(e.levelAfter)
-  );
-  if (!needsBackfill) return events;
-
-  const byId = new Map<string, EnergyEvent>();
-  let running = BASELINE_LEVEL;
-  for (const e of [...events].sort((a, b) => a.timestamp - b.timestamp)) {
-    if (typeof e.levelAfter === "number" && !Number.isNaN(e.levelAfter)) {
-      running = e.levelAfter;
-      byId.set(e.id, e);
-    } else {
-      running = clamp(running + e.delta);
-      byId.set(e.id, { ...e, levelAfter: running });
-    }
-  }
-  return events.map((e) => byId.get(e.id) ?? e);
+/**
+ * Single source of truth for `levelAfter` and the current level: replays
+ * every event's delta from the baseline, in chronological order. Called
+ * after every mutation (add/update/delete/import/hydrate) so a stored
+ * `levelAfter` is never trusted — editing or deleting one event can't leave
+ * later events' levels stale, and clamping is always applied in event order
+ * rather than against whatever the current level happened to be.
+ */
+function replayLevels(
+  events: EnergyEvent[],
+  baselineLevel: number
+): { events: EnergyEvent[]; level: number } {
+  const ascending = [...events].sort((a, b) => a.timestamp - b.timestamp);
+  let running = clamp(baselineLevel);
+  const withLevels = ascending.map((e) => {
+    running = clamp(running + e.delta);
+    return { ...e, levelAfter: running };
+  });
+  return {
+    events: withLevels.sort((a, b) => b.timestamp - a.timestamp),
+    level: running,
+  };
 }
 
 interface EnergyContextValue {
@@ -87,12 +88,18 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as EnergyState;
+        const parsed = JSON.parse(raw) as Partial<EnergyState>;
+        const baselineLevel =
+          typeof parsed.baselineLevel === "number"
+            ? parsed.baselineLevel
+            : DEFAULT_BASELINE_LEVEL;
+        const { events, level } = replayLevels(parsed.events ?? [], baselineLevel);
         // One-time hydration from localStorage, which isn't available during SSR.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setState({
-          level: parsed.level ?? BASELINE_LEVEL,
-          events: backfillLevels(parsed.events ?? []),
+          baselineLevel,
+          level,
+          events,
           onboarded: parsed.onboarded ?? false,
           username: parsed.username ?? "",
         });
@@ -115,8 +122,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     timestamp?: number
   ) {
     setState((prev) => {
-      const newLevel = clamp(prev.level + delta);
-      const event: EnergyEvent = {
+      const draft: EnergyEvent = {
         id: crypto.randomUUID(),
         categoryId: category.id,
         label: category.label,
@@ -124,13 +130,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         delta,
         note: note?.trim() ? note.trim() : undefined,
         timestamp: timestamp ?? Date.now(),
-        levelAfter: newLevel,
+        levelAfter: prev.level,
       };
-      return {
-        ...prev,
-        level: newLevel,
-        events: [event, ...prev.events].sort((a, b) => b.timestamp - a.timestamp),
-      };
+      const { events, level } = replayLevels([draft, ...prev.events], prev.baselineLevel);
+      return { ...prev, events, level };
     });
   }
 
@@ -144,9 +147,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const existing = prev.events.find((e) => e.id === id);
       if (!existing) return prev;
-      const levelWithoutOld = clamp(prev.level - existing.delta);
-      const newLevel = clamp(levelWithoutOld + delta);
-      const updated: EnergyEvent = {
+      const draft: EnergyEvent = {
         ...existing,
         categoryId: category.id,
         label: category.label,
@@ -154,37 +155,39 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         delta,
         note: note?.trim() ? note.trim() : undefined,
         timestamp: timestamp ?? existing.timestamp,
-        levelAfter: newLevel,
       };
-      return {
-        ...prev,
-        level: newLevel,
-        events: prev.events
-          .map((e) => (e.id === id ? updated : e))
-          .sort((a, b) => b.timestamp - a.timestamp),
-      };
+      const { events, level } = replayLevels(
+        prev.events.map((e) => (e.id === id ? draft : e)),
+        prev.baselineLevel
+      );
+      return { ...prev, events, level };
     });
   }
 
   function deleteEvent(id: string) {
     setState((prev) => {
-      const event = prev.events.find((e) => e.id === id);
-      if (!event) return prev;
-      return {
-        ...prev,
-        level: clamp(prev.level - event.delta),
-        events: prev.events.filter((e) => e.id !== id),
-      };
+      if (!prev.events.some((e) => e.id === id)) return prev;
+      const { events, level } = replayLevels(
+        prev.events.filter((e) => e.id !== id),
+        prev.baselineLevel
+      );
+      return { ...prev, events, level };
     });
   }
 
   function completeOnboarding(level: number, username: string) {
-    setState((prev) => ({
-      ...prev,
-      level: clamp(level),
-      username: username.trim(),
-      onboarded: true,
-    }));
+    setState((prev) => {
+      const baselineLevel = clamp(level);
+      const replayed = replayLevels(prev.events, baselineLevel);
+      return {
+        ...prev,
+        baselineLevel,
+        level: replayed.level,
+        events: replayed.events,
+        username: username.trim(),
+        onboarded: true,
+      };
+    });
   }
 
   function setUsername(username: string) {
@@ -198,7 +201,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   function importCode(code: string): boolean {
     const decoded = decodeState(code);
     if (!decoded) return false;
-    setState({ ...decoded, events: backfillLevels(decoded.events) });
+    const { events, level } = replayLevels(decoded.events, decoded.baselineLevel);
+    setState({ ...decoded, events, level });
     return true;
   }
 
