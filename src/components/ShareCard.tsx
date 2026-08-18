@@ -5,8 +5,11 @@ import { EnergyEvent } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
 import { isToday } from "@/lib/day-groups";
 
-const MAX_VISIBLE_EVENTS = 5;
-const CARD_WIDTH = 380;
+const MAX_VISIBLE_EVENTS = 8;
+// iPhone 17 logical point size (402x874 @3x = 1206x2622px physical, matching
+// the real device resolution once exported at pixelRatio 3).
+const CARD_WIDTH = 402;
+const CARD_MIN_HEIGHT = 874;
 
 export const ShareCard = forwardRef<
   HTMLDivElement,
@@ -27,6 +30,7 @@ export const ShareCard = forwardRef<
       ref={ref}
       style={{
         width: CARD_WIDTH,
+        minHeight: CARD_MIN_HEIGHT,
         position: "relative",
         overflow: "hidden",
         background: "var(--background)",
@@ -140,7 +144,9 @@ export const ShareCard = forwardRef<
           position: "relative",
           fontSize: 11,
           opacity: 0.3,
-          margin: "24px 0 0",
+          margin: 0,
+          marginTop: "auto",
+          paddingTop: 24,
         }}
       >
         Energy Level

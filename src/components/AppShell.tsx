@@ -36,9 +36,23 @@ function AppShellInner({ children }: { children: ReactNode }) {
           <span className="font-semibold">Energy Level</span>
           <button
             onClick={() => setShareOpen(true)}
-            className="text-sm border border-foreground/20 rounded-full px-3 py-1.5"
+            aria-label="Share"
+            className="w-9 h-9 flex items-center justify-center rounded-full border border-foreground/20"
           >
-            Share
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 16V4" />
+              <path d="M7 9l5-5 5 5" />
+              <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+            </svg>
           </button>
         </div>
       </header>

@@ -15,13 +15,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Energy Level",
-  description: "Track what charges and drains your energy.",
+  description: "Track what charges and drains your energy — together.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Energy Level",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#16a34a",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

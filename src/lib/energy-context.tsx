@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { Category, EnergyEvent, EnergyState } from "./types";
+import { encodeState, decodeState } from "./backup-code";
 
 const STORAGE_KEY = "hel-energy-state-v1";
 const BASELINE_LEVEL = 70;
@@ -67,6 +68,8 @@ interface EnergyContextValue {
   stopEditingEvent: () => void;
   onboarded: boolean;
   completeOnboarding: (level: number) => void;
+  exportCode: () => string;
+  importCode: (code: string) => boolean;
   hydrated: boolean;
 }
 
@@ -175,6 +178,17 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, level: clamp(level), onboarded: true }));
   }
 
+  function exportCode(): string {
+    return encodeState(state);
+  }
+
+  function importCode(code: string): boolean {
+    const decoded = decodeState(code);
+    if (!decoded) return false;
+    setState({ ...decoded, events: backfillLevels(decoded.events) });
+    return true;
+  }
+
   return (
     <EnergyContext.Provider
       value={{
@@ -188,6 +202,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         stopEditingEvent: () => setEditingEvent(null),
         onboarded: state.onboarded,
         completeOnboarding,
+        exportCode,
+        importCode,
         hydrated,
       }}
     >
