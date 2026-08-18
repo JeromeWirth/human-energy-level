@@ -20,6 +20,8 @@ export interface EnergyEvent {
 
 export const DEFAULT_BASELINE_LEVEL = 70;
 
+export const DEFAULT_HIDE_NOTES_IN_SHARES = true;
+
 export interface EnergyState {
   /** Level the replay starts from, before any event's delta is applied. */
   baselineLevel: number;
@@ -27,4 +29,6 @@ export interface EnergyState {
   events: EnergyEvent[];
   onboarded: boolean;
   username: string;
+  /** When true, notes are omitted from shared pictures and live links. */
+  hideNotesInShares: boolean;
 }

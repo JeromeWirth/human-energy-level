@@ -33,7 +33,8 @@ const MAX_CODE_LENGTH = 20_000;
 export function buildDaySnapshot(
   level: number,
   events: EnergyEvent[],
-  username: string
+  username: string,
+  includeNotes: boolean
 ): DaySnapshot {
   return {
     level,
@@ -45,7 +46,7 @@ export function buildDaySnapshot(
         emoji: e.emoji,
         label: e.label,
         delta: e.delta,
-        note: e.note,
+        note: includeNotes ? e.note : undefined,
         timestamp: e.timestamp,
       })),
   };

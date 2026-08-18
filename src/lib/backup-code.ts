@@ -1,4 +1,4 @@
-import { EnergyState, EnergyEvent } from "./types";
+import { EnergyState, EnergyEvent, DEFAULT_HIDE_NOTES_IN_SHARES } from "./types";
 import {
   isFiniteNumber,
   isBoundedString,
@@ -72,6 +72,10 @@ export function decodeState(code: string): EnergyState | null {
       events: parsed.events,
       onboarded: true,
       username: parsed.username,
+      hideNotesInShares:
+        typeof parsed.hideNotesInShares === "boolean"
+          ? parsed.hideNotesInShares
+          : DEFAULT_HIDE_NOTES_IN_SHARES,
     };
   } catch {
     return null;

@@ -13,8 +13,8 @@ const CARD_MIN_HEIGHT = 874;
 
 export const ShareCard = forwardRef<
   HTMLDivElement,
-  { level: number; events: EnergyEvent[] }
->(function ShareCard({ level, events }, ref) {
+  { level: number; events: EnergyEvent[]; hideNotes: boolean }
+>(function ShareCard({ level, events, hideNotes }, ref) {
   const color = batteryColor(level);
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -98,7 +98,7 @@ export const ShareCard = forwardRef<
                   <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
                     {e.label}
                   </p>
-                  {e.note && (
+                  {e.note && !hideNotes && (
                     <p style={{ fontSize: 11, opacity: 0.6, margin: "2px 0 0" }}>
                       {e.note}
                     </p>

@@ -7,7 +7,7 @@ import { ShareCard } from "./ShareCard";
 import { buildDaySnapshot, encodeDaySnapshot } from "@/lib/day-share";
 
 export function ShareModal({ onClose }: { onClose: () => void }) {
-  const { level, events, username } = useEnergy();
+  const { level, events, username, hideNotesInShares } = useEnergy();
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,9 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
   }
 
   function buildLink(): string {
-    const code = encodeDaySnapshot(buildDaySnapshot(level, events, username));
+    const code = encodeDaySnapshot(
+      buildDaySnapshot(level, events, username, !hideNotesInShares)
+    );
     return `${window.location.origin}/day/${code}`;
   }
 
@@ -107,10 +109,22 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
         <h2 className="text-lg font-semibold self-start">Share your energy</h2>
 
         <div className="rounded-xl overflow-hidden shadow-md scale-90 origin-top">
-          <ShareCard ref={cardRef} level={level} events={events} />
+          <ShareCard
+            ref={cardRef}
+            level={level}
+            events={events}
+            hideNotes={hideNotesInShares}
+          />
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <p className="text-xs text-foreground/45 text-center px-4">
+          {hideNotesInShares
+            ? "Notes stay out of what you share."
+            : "Notes are included in what you share."}{" "}
+          Change this in Settings.
+        </p>
 
         <div className="w-full flex flex-col gap-2">
           <button
@@ -141,8 +155,8 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             {linkCopied ? "Link copied!" : "Share a live link"}
           </button>
           <p className="text-xs text-foreground/40 text-center px-4">
-            Shows just the battery as a preview — they see today&apos;s full
-            list only if they tap through.
+            The chat preview only shows your battery level. This link never
+            expires — anyone who has it can view it anytime.
           </p>
         </div>
       </div>

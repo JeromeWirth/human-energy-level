@@ -7,7 +7,13 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { Category, EnergyEvent, EnergyState, DEFAULT_BASELINE_LEVEL } from "./types";
+import {
+  Category,
+  EnergyEvent,
+  EnergyState,
+  DEFAULT_BASELINE_LEVEL,
+  DEFAULT_HIDE_NOTES_IN_SHARES,
+} from "./types";
 import { encodeState, decodeState } from "./backup-code";
 
 const STORAGE_KEY = "hel-energy-state-v1";
@@ -18,6 +24,7 @@ const DEFAULT_STATE: EnergyState = {
   events: [],
   onboarded: false,
   username: "",
+  hideNotesInShares: DEFAULT_HIDE_NOTES_IN_SHARES,
 };
 
 function clamp(value: number): number {
@@ -72,6 +79,8 @@ interface EnergyContextValue {
   completeOnboarding: (level: number, username: string) => void;
   username: string;
   setUsername: (username: string) => void;
+  hideNotesInShares: boolean;
+  setHideNotesInShares: (hide: boolean) => void;
   exportCode: () => string;
   importCode: (code: string) => boolean;
   hydrated: boolean;
@@ -102,6 +111,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
           events,
           onboarded: parsed.onboarded ?? false,
           username: parsed.username ?? "",
+          hideNotesInShares:
+            parsed.hideNotesInShares ?? DEFAULT_HIDE_NOTES_IN_SHARES,
         });
       }
     } catch {
@@ -194,6 +205,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, username: username.trim() }));
   }
 
+  function setHideNotesInShares(hide: boolean) {
+    setState((prev) => ({ ...prev, hideNotesInShares: hide }));
+  }
+
   function exportCode(): string {
     return encodeState(state);
   }
@@ -221,6 +236,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         completeOnboarding,
         username: state.username,
         setUsername,
+        hideNotesInShares: state.hideNotesInShares,
+        setHideNotesInShares,
         exportCode,
         importCode,
         hydrated,
