@@ -7,6 +7,7 @@ import { useEnergy } from "@/lib/energy-context";
 export function OnboardingScreen() {
   const { completeOnboarding, importCode } = useEnergy();
   const [level, setLevel] = useState(70);
+  const [username, setUsername] = useState("");
   const [restoring, setRestoring] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export function OnboardingScreen() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-8 px-6 py-10 text-center">
+    <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 py-10 text-center">
       <div>
         <h1 className="text-xl font-semibold mb-1">Welcome</h1>
         <p className="text-sm text-foreground/60">
@@ -78,8 +79,22 @@ export function OnboardingScreen() {
         aria-label="Starting energy level"
       />
 
+      <label className="w-full max-w-xs flex flex-col gap-1.5 text-left">
+        <span className="text-sm text-foreground/70">
+          What should we call you?
+        </span>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Your name"
+          maxLength={24}
+          className="border border-foreground/15 rounded-lg px-3 py-2 bg-transparent"
+        />
+      </label>
+
       <button
-        onClick={() => completeOnboarding(level)}
+        onClick={() => completeOnboarding(level, username)}
         className="w-full max-w-xs bg-foreground text-background rounded-lg py-3 font-medium"
       >
         Get started

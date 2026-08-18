@@ -17,6 +17,7 @@ const DEFAULT_STATE: EnergyState = {
   level: BASELINE_LEVEL,
   events: [],
   onboarded: false,
+  username: "",
 };
 
 function clamp(value: number): number {
@@ -67,7 +68,9 @@ interface EnergyContextValue {
   startEditingEvent: (event: EnergyEvent) => void;
   stopEditingEvent: () => void;
   onboarded: boolean;
-  completeOnboarding: (level: number) => void;
+  completeOnboarding: (level: number, username: string) => void;
+  username: string;
+  setUsername: (username: string) => void;
   exportCode: () => string;
   importCode: (code: string) => boolean;
   hydrated: boolean;
@@ -91,6 +94,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
           level: parsed.level ?? BASELINE_LEVEL,
           events: backfillLevels(parsed.events ?? []),
           onboarded: parsed.onboarded ?? false,
+          username: parsed.username ?? "",
         });
       }
     } catch {
@@ -174,8 +178,17 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  function completeOnboarding(level: number) {
-    setState((prev) => ({ ...prev, level: clamp(level), onboarded: true }));
+  function completeOnboarding(level: number, username: string) {
+    setState((prev) => ({
+      ...prev,
+      level: clamp(level),
+      username: username.trim(),
+      onboarded: true,
+    }));
+  }
+
+  function setUsername(username: string) {
+    setState((prev) => ({ ...prev, username: username.trim() }));
   }
 
   function exportCode(): string {
@@ -202,6 +215,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         stopEditingEvent: () => setEditingEvent(null),
         onboarded: state.onboarded,
         completeOnboarding,
+        username: state.username,
+        setUsername,
         exportCode,
         importCode,
         hydrated,

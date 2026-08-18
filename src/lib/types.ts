@@ -22,4 +22,5 @@ export interface EnergyState {
   level: number;
   events: EnergyEvent[];
   onboarded: boolean;
+  username: string;
 }

@@ -4,13 +4,11 @@ import { useMemo, useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { BatteryHistoryChart } from "@/components/BatteryHistoryChart";
 import { Pressable } from "@/components/Pressable";
-import { BackupSheet } from "@/components/BackupSheet";
 import { buildHistorySeries, WINDOW_OPTIONS, WindowDays } from "@/lib/history";
 
 export default function HistoryPage() {
   const { events, level, deleteEvent, startEditingEvent, hydrated } = useEnergy();
   const [windowDays, setWindowDays] = useState<WindowDays>(7);
-  const [backupMode, setBackupMode] = useState<"export" | "restore" | null>(null);
 
   const points = useMemo(
     () => buildHistorySeries(events, level, windowDays),
@@ -95,33 +93,6 @@ export default function HistoryPage() {
             </li>
           ))}
         </ul>
-      )}
-
-      <div className="border-t border-foreground/10 pt-5">
-        <h2 className="text-sm font-medium text-foreground/60 mb-1">
-          Backup &amp; transfer
-        </h2>
-        <p className="text-xs text-foreground/45 mb-3">
-          Move your data to another device, or save a copy for yourself.
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setBackupMode("export")}
-            className="flex-1 border border-foreground/15 rounded-lg py-2.5 text-sm font-medium"
-          >
-            Export data
-          </button>
-          <button
-            onClick={() => setBackupMode("restore")}
-            className="flex-1 border border-foreground/15 rounded-lg py-2.5 text-sm font-medium"
-          >
-            Restore from code
-          </button>
-        </div>
-      </div>
-
-      {backupMode && (
-        <BackupSheet mode={backupMode} onClose={() => setBackupMode(null)} />
       )}
     </div>
   );

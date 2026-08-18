@@ -1,6 +1,7 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { EnergyProvider, useEnergy } from "@/lib/energy-context";
 import { BottomNav } from "./BottomNav";
 import { Fab } from "./Fab";
@@ -17,9 +18,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function AppShellInner({ children }: { children: ReactNode }) {
-  const { hydrated, onboarded, editingEvent, stopEditingEvent } = useEnergy();
+  const { hydrated, onboarded, username, editingEvent, stopEditingEvent } =
+    useEnergy();
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const pathname = usePathname();
+  const title = username ? `${username} Energy Level` : "Energy Level";
+
+  useEffect(() => {
+    if (!hydrated) return;
+    // Next reapplies the root layout's static title on every client-side
+    // navigation, so this has to re-run per route (not just when the
+    // username changes) to win against that reset.
+    document.title = title;
+  }, [hydrated, title, pathname]);
 
   if (!hydrated) return null;
   if (!onboarded) return <OnboardingScreen />;
@@ -31,9 +43,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-foreground/10">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-foreground/10 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-md flex items-center justify-between px-4 py-3">
-          <span className="font-semibold">Energy Level</span>
+          <span className="font-semibold truncate mr-3">{title}</span>
           <button
             onClick={() => setShareOpen(true)}
             aria-label="Share"

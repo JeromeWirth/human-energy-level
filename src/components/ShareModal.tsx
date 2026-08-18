@@ -4,12 +4,14 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { useEnergy } from "@/lib/energy-context";
 import { ShareCard } from "./ShareCard";
+import { buildDaySnapshot, encodeDaySnapshot } from "@/lib/day-share";
 
 export function ShareModal({ onClose }: { onClose: () => void }) {
-  const { level, events } = useEnergy();
+  const { level, events, username } = useEnergy();
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   async function generate(): Promise<Blob | null> {
     if (!cardRef.current) return null;
@@ -58,6 +60,32 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
     }
   }
 
+  function buildLink(): string {
+    const code = encodeDaySnapshot(buildDaySnapshot(level, events, username));
+    return `${window.location.origin}/day/${code}`;
+  }
+
+  async function handleShareLink() {
+    setError(null);
+    const url = buildLink();
+    try {
+      if (navigator.share) {
+        await navigator.share({ url, title: "My energy level today" });
+        return;
+      }
+      throw new Error("no-native-share");
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(url);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 1500);
+      } catch {
+        setError("Couldn't share or copy the link.");
+      }
+    }
+  }
+
   function downloadBlob(blob: Blob) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -90,7 +118,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             disabled={busy}
             className="w-full bg-foreground text-background rounded-lg py-3 font-medium disabled:opacity-50"
           >
-            {busy ? "Preparing..." : "Share"}
+            {busy ? "Preparing..." : "Share picture"}
           </button>
           <button
             onClick={handleDownload}
@@ -99,6 +127,23 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
           >
             Download image
           </button>
+
+          <div className="flex items-center gap-2 py-1">
+            <div className="flex-1 h-px bg-foreground/10" />
+            <span className="text-xs text-foreground/40">or</span>
+            <div className="flex-1 h-px bg-foreground/10" />
+          </div>
+
+          <button
+            onClick={handleShareLink}
+            className="w-full border border-foreground/20 rounded-lg py-3 font-medium"
+          >
+            {linkCopied ? "Link copied!" : "Share a live link"}
+          </button>
+          <p className="text-xs text-foreground/40 text-center px-4">
+            Shows just the battery as a preview — they see today&apos;s full
+            list only if they tap through.
+          </p>
         </div>
       </div>
     </div>

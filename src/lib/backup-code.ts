@@ -34,6 +34,7 @@ export function decodeState(code: string): EnergyState | null {
       level: parsed.level,
       events: parsed.events,
       onboarded: true,
+      username: typeof parsed.username === "string" ? parsed.username : "",
     };
   } catch {
     return null;
