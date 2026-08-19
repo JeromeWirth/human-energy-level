@@ -17,11 +17,24 @@ export default async function Image({
 }) {
   const { code } = await params;
   const snapshot = decodeDaySnapshot(code);
-  const level = snapshot ? Math.max(0, Math.min(100, snapshot.level)) : 0;
+  // An invalid code should never reach the Satori render below — a flood
+  // of garbage codes would otherwise cost one full image render each.
+  // Decode failure is as deterministic per-code as success, so it's safe
+  // to cache the same way.
+  if (!snapshot) {
+    return new Response(null, {
+      status: 404,
+      headers: {
+        "Cache-Control": "public, immutable, no-transform, s-maxage=31536000",
+      },
+    });
+  }
+
+  const level = Math.max(0, Math.min(100, snapshot.level));
   const color = batteryColor(level);
   const status = batteryStatusLabel(level);
   const fillWidth = Math.max(6, Math.round(((BATTERY_W - PAD * 2) * level) / 100));
-  const label = snapshot?.username
+  const label = snapshot.username
     ? `${snapshot.username.toUpperCase()}'S ENERGY LEVEL`
     : "MY ENERGY LEVEL";
 
