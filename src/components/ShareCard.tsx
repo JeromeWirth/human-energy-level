@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { BatteryGauge } from "./BatteryGauge";
-import { batteryColor } from "@/lib/categories";
+import { batteryColor, deltaColorHex } from "@/lib/categories";
 import { EnergyEvent } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
 import { isToday } from "@/lib/day-groups";
@@ -112,7 +112,7 @@ export const ShareCard = forwardRef<
                     fontWeight: 700,
                     margin: 0,
                     whiteSpace: "nowrap",
-                    color: e.delta >= 0 ? "#16a34a" : "#ef4444",
+                    color: deltaColorHex(e.delta),
                   }}
                 >
                   {e.delta > 0 ? `+${e.delta}` : e.delta}

@@ -10,6 +10,7 @@ import {
   WINDOW_OPTIONS,
   WindowDays,
 } from "@/lib/history";
+import { deltaColorClass } from "@/lib/categories";
 
 export default function HistoryPage() {
   const { events, level, startEditingEvent, hydrated } = useEnergy();
@@ -85,9 +86,9 @@ export default function HistoryPage() {
                 </div>
               </Pressable>
               <p
-                className={`text-sm font-semibold pl-2 ${
-                  e.delta >= 0 ? "text-green-600" : "text-red-500"
-                }`}
+                className={`text-sm font-semibold pl-2 ${deltaColorClass(
+                  e.delta
+                )}`}
               >
                 {e.delta > 0 ? `+${e.delta}` : e.delta}
               </p>

@@ -50,6 +50,23 @@ export function intensityLabel(delta: number): string {
   return "Neutral";
 }
 
+// Tailwind class and raw-hex variants of the same three-way scale: the class
+// form for regular JSX, the hex form for contexts that need a literal
+// computed color (ShareCard's html-to-image export, next/og's ImageResponse).
+// Same yellow as batteryColor's mid-tier, for one consistent "caution" tone
+// across the app rather than a color invented just for this.
+export function deltaColorClass(delta: number): string {
+  if (delta > 0) return "text-green-600";
+  if (delta < 0) return "text-red-500";
+  return "text-yellow-500";
+}
+
+export function deltaColorHex(delta: number): string {
+  if (delta > 0) return "#16a34a";
+  if (delta < 0) return "#ef4444";
+  return "#eab308";
+}
+
 export function batteryColor(level: number): string {
   if (level > 60) return "#22c55e";
   if (level > 20) return "#eab308";
