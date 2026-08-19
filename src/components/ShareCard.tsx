@@ -112,7 +112,7 @@ export const ShareCard = forwardRef<
                     fontWeight: 700,
                     margin: 0,
                     whiteSpace: "nowrap",
-                    color: e.delta > 0 ? "#16a34a" : "#ef4444",
+                    color: e.delta >= 0 ? "#16a34a" : "#ef4444",
                   }}
                 >
                   {e.delta > 0 ? `+${e.delta}` : e.delta}

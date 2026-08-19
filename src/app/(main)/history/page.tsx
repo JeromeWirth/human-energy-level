@@ -86,7 +86,7 @@ export default function HistoryPage() {
               </Pressable>
               <p
                 className={`text-sm font-semibold pl-2 ${
-                  e.delta > 0 ? "text-green-600" : "text-red-500"
+                  e.delta >= 0 ? "text-green-600" : "text-red-500"
                 }`}
               >
                 {e.delta > 0 ? `+${e.delta}` : e.delta}

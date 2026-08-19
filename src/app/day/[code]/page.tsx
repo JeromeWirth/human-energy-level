@@ -92,7 +92,7 @@ export default async function DaySharePage({ params }: { params: Params }) {
                   </div>
                   <p
                     className={`text-sm font-semibold ${
-                      e.delta > 0 ? "text-green-600" : "text-red-500"
+                      e.delta >= 0 ? "text-green-600" : "text-red-500"
                     }`}
                   >
                     {e.delta > 0 ? `+${e.delta}` : e.delta}

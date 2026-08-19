@@ -83,7 +83,7 @@ export default function Home() {
                         <div className="text-right">
                           <p
                             className={`text-sm font-semibold ${
-                              e.delta > 0 ? "text-green-600" : "text-red-500"
+                              e.delta >= 0 ? "text-green-600" : "text-red-500"
                             }`}
                           >
                             {e.delta > 0 ? `+${e.delta}` : e.delta}
