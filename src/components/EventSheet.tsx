@@ -125,6 +125,7 @@ export function EventSheet({
                 type="range"
                 min={-30}
                 max={30}
+                step={5}
                 value={delta}
                 onChange={(e) => setDelta(Number(e.target.value))}
               />
