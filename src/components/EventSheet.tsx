@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { Category, EnergyEvent } from "@/lib/types";
 import { CATEGORIES, intensityLabel } from "@/lib/categories";
+import { MAX_TEXT_LENGTH } from "@/lib/decode-utils";
 
 function toLocalInputValue(date: Date): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -150,6 +151,7 @@ export function EventSheet({
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                maxLength={MAX_TEXT_LENGTH}
                 placeholder="Add a detail..."
                 className="border border-foreground/15 rounded-lg px-3 py-2 bg-transparent"
               />
