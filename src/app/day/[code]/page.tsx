@@ -23,6 +23,7 @@ export async function generateMetadata({
       level !== null
         ? `${snapshot?.username ? `${snapshot.username}'s` : "Their"} energy is at ${level}% today.`
         : "A shared energy level snapshot.",
+    robots: { index: false, follow: false },
   };
 }
 
