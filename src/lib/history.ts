@@ -13,6 +13,17 @@ export const WINDOW_OPTIONS = [
 
 export type WindowDays = (typeof WINDOW_OPTIONS)[number]["days"];
 
+/** Filters events to those within the given window (or all, when null). */
+export function filterEventsByWindow(
+  events: EnergyEvent[],
+  windowDays: WindowDays,
+  now: number = Date.now()
+): EnergyEvent[] {
+  if (windowDays === null) return events;
+  const cutoff = now - windowDays * 86_400_000;
+  return events.filter((e) => e.timestamp >= cutoff);
+}
+
 /**
  * Reconstructs a step-wise battery level series for the given window.
  * Events only carry the level *after* they were logged, so the level

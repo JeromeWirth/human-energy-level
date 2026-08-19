@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { BatteryHistoryChart } from "@/components/BatteryHistoryChart";
 import { Pressable } from "@/components/Pressable";
-import { buildHistorySeries, WINDOW_OPTIONS, WindowDays } from "@/lib/history";
+import {
+  buildHistorySeries,
+  filterEventsByWindow,
+  WINDOW_OPTIONS,
+  WindowDays,
+} from "@/lib/history";
 
 export default function HistoryPage() {
   const { events, level, startEditingEvent, hydrated } = useEnergy();
@@ -13,6 +18,11 @@ export default function HistoryPage() {
   const points = useMemo(
     () => buildHistorySeries(events, level, windowDays),
     [events, level, windowDays]
+  );
+
+  const windowedEvents = useMemo(
+    () => filterEventsByWindow(events, windowDays),
+    [events, windowDays]
   );
 
   if (!hydrated) return null;
@@ -43,13 +53,13 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {events.length === 0 ? (
+      {windowedEvents.length === 0 ? (
         <p className="text-sm text-foreground/40 py-6 text-center border border-dashed border-foreground/15 rounded-xl">
-          No entries yet.
+          {events.length === 0 ? "No entries yet." : "No entries in this range."}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {events.map((e) => (
+          {windowedEvents.map((e) => (
             <li
               key={e.id}
               className="flex items-center justify-between border border-foreground/10 rounded-xl pl-3 pr-2 py-2.5 overflow-hidden hover:bg-foreground/5 transition-colors"
