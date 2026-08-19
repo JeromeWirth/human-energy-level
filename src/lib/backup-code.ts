@@ -38,6 +38,12 @@ function isValidBackupEvent(value: unknown): value is EnergyEvent {
   );
 }
 
+// A duplicate id would collide as a React key and make edit/delete target
+// the wrong entry, so a corrupted or hand-edited code can't carry one.
+function hasUniqueIds(events: EnergyEvent[]): boolean {
+  return new Set(events.map((e) => e.id)).size === events.length;
+}
+
 /** Decodes a backup code back into app state, or null if it's invalid. */
 export function decodeState(code: string): EnergyState | null {
   try {
@@ -60,7 +66,8 @@ export function decodeState(code: string): EnergyState | null {
       !isBoundedString(parsed.username, MAX_USERNAME_LENGTH) ||
       !Array.isArray(parsed.events) ||
       parsed.events.length > MAX_BACKUP_EVENTS ||
-      !parsed.events.every(isValidBackupEvent)
+      !parsed.events.every(isValidBackupEvent) ||
+      !hasUniqueIds(parsed.events)
     ) {
       return null;
     }
