@@ -1,11 +1,17 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 // No third-party scripts, external stylesheets, or remote images anywhere in
 // this app — the one non-'self' need is the data: URI that html-to-image's
-// PNG export round-trips through fetch().
+// PNG export round-trips through fetch(). 'unsafe-inline' on script-src is
+// required because Next.js's App Router boots via inline scripts (the RSC
+// payload pushes); a strict nonce-based CSP would need proxy.ts to mint one
+// per request, which isn't worth the added infra for a static, no-backend
+// app with no injection surface to defend against in the first place.
 const cspHeader = `
   default-src 'self';
-  script-src 'self';
+  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob:;
   font-src 'self';
