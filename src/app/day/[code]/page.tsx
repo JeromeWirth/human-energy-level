@@ -5,6 +5,10 @@ import { BatteryGauge } from "@/components/BatteryGauge";
 
 type Params = Promise<{ code: string }>;
 
+// A day snapshot is a pure function of `code`, so it's safe to prerender and
+// cache each unique URL indefinitely — same reasoning as the OG image route.
+export const dynamic = "force-static";
+
 export async function generateMetadata({
   params,
 }: {
