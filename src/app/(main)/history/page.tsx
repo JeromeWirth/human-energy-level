@@ -13,7 +13,7 @@ import {
 
 export default function HistoryPage() {
   const { events, level, startEditingEvent, hydrated } = useEnergy();
-  const [windowDays, setWindowDays] = useState<WindowDays>(7);
+  const [windowDays, setWindowDays] = useState<WindowDays>("today");
 
   const points = useMemo(
     () => buildHistorySeries(events, level, windowDays),
