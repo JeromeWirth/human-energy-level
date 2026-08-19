@@ -1,4 +1,5 @@
 import { EnergyEvent } from "./types";
+import { startOfDay } from "./day-groups";
 
 export interface HistoryPoint {
   timestamp: number;
@@ -6,6 +7,7 @@ export interface HistoryPoint {
 }
 
 export const WINDOW_OPTIONS = [
+  { label: "Today", days: "today" },
   { label: "7D", days: 7 },
   { label: "30D", days: 30 },
   { label: "All", days: null },
@@ -13,14 +15,21 @@ export const WINDOW_OPTIONS = [
 
 export type WindowDays = (typeof WINDOW_OPTIONS)[number]["days"];
 
+/** Start of the given window, or null for "All" (caller decides the bound). */
+function windowStartFor(windowDays: WindowDays, now: number): number | null {
+  if (windowDays === null) return null;
+  if (windowDays === "today") return startOfDay(new Date(now));
+  return now - windowDays * 86_400_000;
+}
+
 /** Filters events to those within the given window (or all, when null). */
 export function filterEventsByWindow(
   events: EnergyEvent[],
   windowDays: WindowDays,
   now: number = Date.now()
 ): EnergyEvent[] {
-  if (windowDays === null) return events;
-  const cutoff = now - windowDays * 86_400_000;
+  const cutoff = windowStartFor(windowDays, now);
+  if (cutoff === null) return events;
   return events.filter((e) => e.timestamp >= cutoff);
 }
 
@@ -39,16 +48,14 @@ export function buildHistorySeries(
   const ascending = [...events].sort((a, b) => a.timestamp - b.timestamp);
 
   if (ascending.length === 0) {
-    const start = windowDays ? now - windowDays * 86_400_000 : now - 7 * 86_400_000;
+    const start = windowStartFor(windowDays, now) ?? now - 7 * 86_400_000;
     return [
       { timestamp: start, level: currentLevel },
       { timestamp: now, level: currentLevel },
     ];
   }
 
-  const windowStart = windowDays
-    ? now - windowDays * 86_400_000
-    : ascending[0].timestamp;
+  const windowStart = windowStartFor(windowDays, now) ?? ascending[0].timestamp;
 
   const before = ascending.filter((e) => e.timestamp <= windowStart);
   const within = ascending.filter((e) => e.timestamp > windowStart);

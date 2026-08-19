@@ -22,6 +22,9 @@ function levelAtTime(points: HistoryPoint[], t: number): number {
 
 function formatTick(timestamp: number, windowDays: WindowDays): string {
   const date = new Date(timestamp);
+  if (windowDays === "today") {
+    return date.toLocaleTimeString(undefined, { hour: "numeric" });
+  }
   if (windowDays !== null && windowDays <= 7) {
     return date.toLocaleDateString(undefined, { weekday: "short" });
   }
@@ -174,12 +177,7 @@ export function BatteryHistoryChart({
           style={{ left: `${(hover.x / VB_WIDTH) * 100}%` }}
         >
           <strong>{Math.round(hover.level)}%</strong>{" "}
-          <span className="opacity-70">
-            {new Date(hover.t).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
+          <span className="opacity-70">{formatTick(hover.t, windowDays)}</span>
         </div>
       )}
     </div>
