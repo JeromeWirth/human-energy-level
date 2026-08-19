@@ -50,6 +50,9 @@ export function buildDaySnapshot(
     username,
     events: events
       .filter((e) => isToday(e.timestamp))
+      // Keep encode within the decoder's event cap, or a prolific enough
+      // day would produce a link the app itself rejects as invalid.
+      .slice(0, MAX_SNAPSHOT_EVENTS)
       .map((e) => ({
         emoji: e.emoji,
         label: e.label,
