@@ -46,11 +46,6 @@ export default async function DaySharePage({ params }: { params: Params }) {
     );
   }
 
-  const date = new Date(snapshot.generatedAt).toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
   const label = snapshot.username
     ? `${snapshot.username}'s Energy Level`
     : "Shared Energy Level";
@@ -62,7 +57,7 @@ export default async function DaySharePage({ params }: { params: Params }) {
           <p className="text-xs uppercase tracking-wide text-foreground/45">
             {label}
           </p>
-          <p className="text-sm text-foreground/60 mt-0.5">{date}</p>
+          <p className="text-sm text-foreground/60 mt-0.5">{snapshot.dateLabel}</p>
         </div>
 
         <BatteryGauge level={snapshot.level} size="lg" />
