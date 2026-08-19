@@ -152,8 +152,8 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             {linkCopied ? "Link copied!" : "Share a live link"}
           </button>
           <p className="text-xs text-foreground/40 text-center px-4">
-            The chat preview only shows your battery level. This link never
-            expires — anyone who has it can view it anytime.
+            The chat preview shows your name and battery level. This link
+            never expires — anyone who has it can view it anytime.
           </p>
         </div>
       </div>
