@@ -59,6 +59,12 @@ export function BackupSheet({
               ? "Copy this code and save it somewhere safe, or paste it into the app on another device."
               : "Paste a backup code exported from another device."}
           </p>
+          {mode === "export" && (
+            <p className="text-xs text-foreground/45 mt-2">
+              This includes your full history, notes included — think
+              twice before sending it through chat or email.
+            </p>
+          )}
         </div>
 
         <textarea
