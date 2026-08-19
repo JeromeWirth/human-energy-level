@@ -141,7 +141,9 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
         delta,
         note: note?.trim() ? note.trim() : undefined,
         timestamp: timestamp ?? Date.now(),
-        levelAfter: prev.level,
+        // Placeholder: replayLevels below recomputes this for every event,
+        // draft included, so the value here is never read.
+        levelAfter: 0,
       };
       const { events, level } = replayLevels([draft, ...prev.events], prev.baselineLevel);
       return { ...prev, events, level };
