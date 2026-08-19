@@ -24,7 +24,7 @@ export function encodeState(state: EnergyState): string {
   return btoa(binary);
 }
 
-function isValidBackupEvent(value: unknown): value is EnergyEvent {
+export function isValidBackupEvent(value: unknown): value is EnergyEvent {
   if (typeof value !== "object" || value === null) return false;
   const e = value as Record<string, unknown>;
   return (

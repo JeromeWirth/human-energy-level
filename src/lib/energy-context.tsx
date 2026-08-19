@@ -14,7 +14,7 @@ import {
   DEFAULT_BASELINE_LEVEL,
   DEFAULT_HIDE_NOTES_IN_SHARES,
 } from "./types";
-import { encodeState, decodeState } from "./backup-code";
+import { encodeState, decodeState, isValidBackupEvent } from "./backup-code";
 
 const STORAGE_KEY = "hel-energy-state-v1";
 
@@ -29,6 +29,23 @@ const DEFAULT_STATE: EnergyState = {
 
 function clamp(value: number): number {
   return Math.min(100, Math.max(0, value));
+}
+
+/**
+ * localStorage isn't trusted any more than a pasted backup code — a prior
+ * bug, a manual edit, or a future schema change could leave malformed or
+ * duplicate-id entries that would otherwise render as NaN% or collide as
+ * React keys. Drops offending entries rather than the whole state, since
+ * this is the user's live data rather than an external round-trip.
+ */
+function sanitizeStoredEvents(value: unknown): EnergyEvent[] {
+  if (!Array.isArray(value)) return [];
+  const seenIds = new Set<string>();
+  return value.filter(isValidBackupEvent).filter((e) => {
+    if (seenIds.has(e.id)) return false;
+    seenIds.add(e.id);
+    return true;
+  });
 }
 
 /**
@@ -102,7 +119,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
           typeof parsed.baselineLevel === "number"
             ? parsed.baselineLevel
             : DEFAULT_BASELINE_LEVEL;
-        const { events, level } = replayLevels(parsed.events ?? [], baselineLevel);
+        const { events, level } = replayLevels(
+          sanitizeStoredEvents(parsed.events),
+          baselineLevel
+        );
         // One-time hydration from localStorage, which isn't available during SSR.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setState({
