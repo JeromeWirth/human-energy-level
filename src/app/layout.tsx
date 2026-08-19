@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,15 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Script
+          id="umami-analytics"
+          src="https://stats.jeromewirth.de/script.js"
+          data-website-id="7faf77a9-c471-4499-bfa8-d41df1e2a859"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }

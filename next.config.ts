@@ -2,20 +2,25 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
-// No third-party scripts, external stylesheets, or remote images anywhere in
-// this app — the one non-'self' need is the data: URI that html-to-image's
-// PNG export round-trips through fetch(). 'unsafe-inline' on script-src is
-// required because Next.js's App Router boots via inline scripts (the RSC
-// payload pushes); a strict nonce-based CSP would need proxy.ts to mint one
-// per request, which isn't worth the added infra for a static, no-backend
-// app with no injection surface to defend against in the first place.
+// Only one third-party origin in the whole app: the self-hosted Umami
+// analytics instance below, which needs both script-src (to load
+// script.js) and connect-src (its tracking beacon posts back to the same
+// origin). Everything else stays 'self' — the only other non-'self' need is
+// the data: URI that html-to-image's PNG export round-trips through fetch().
+// 'unsafe-inline' on script-src is required because Next.js's App Router
+// boots via inline scripts (the RSC payload pushes); a strict nonce-based
+// CSP would need proxy.ts to mint one per request, which isn't worth the
+// added infra for a static, no-backend app with this little injection
+// surface to defend against in the first place.
+const ANALYTICS_ORIGIN = "https://stats.jeromewirth.de";
+
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' ${ANALYTICS_ORIGIN}${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob:;
   font-src 'self';
-  connect-src 'self' data:;
+  connect-src 'self' data: ${ANALYTICS_ORIGIN};
   object-src 'none';
   base-uri 'self';
   form-action 'self';
