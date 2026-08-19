@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { decodeDaySnapshot } from "@/lib/day-share";
 import { BatteryGauge } from "@/components/BatteryGauge";
+import { deltaColorClass } from "@/lib/categories";
 
 type Params = Promise<{ code: string }>;
 
@@ -91,9 +92,9 @@ export default async function DaySharePage({ params }: { params: Params }) {
                     </div>
                   </div>
                   <p
-                    className={`text-sm font-semibold ${
-                      e.delta > 0 ? "text-green-600" : "text-red-500"
-                    }`}
+                    className={`text-sm font-semibold ${deltaColorClass(
+                      e.delta
+                    )}`}
                   >
                     {e.delta > 0 ? `+${e.delta}` : e.delta}
                   </p>

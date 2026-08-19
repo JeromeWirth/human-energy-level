@@ -6,6 +6,7 @@ import { Pressable } from "@/components/Pressable";
 import { useEnergy } from "@/lib/energy-context";
 import { timeAgo } from "@/lib/time";
 import { groupEventsByDay } from "@/lib/day-groups";
+import { deltaColorClass } from "@/lib/categories";
 
 const COMPACT_SCROLL_THRESHOLD = 24;
 
@@ -82,9 +83,9 @@ export default function Home() {
                         </div>
                         <div className="text-right">
                           <p
-                            className={`text-sm font-semibold ${
-                              e.delta > 0 ? "text-green-600" : "text-red-500"
-                            }`}
+                            className={`text-sm font-semibold ${deltaColorClass(
+                              e.delta
+                            )}`}
                           >
                             {e.delta > 0 ? `+${e.delta}` : e.delta}
                           </p>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useEnergy } from "@/lib/energy-context";
 import { Category, EnergyEvent } from "@/lib/types";
-import { CATEGORIES, intensityLabel } from "@/lib/categories";
+import { CATEGORIES, intensityLabel, deltaColorClass } from "@/lib/categories";
 import { MAX_TEXT_LENGTH } from "@/lib/decode-utils";
 
 function toLocalInputValue(date: Date): string {
@@ -116,9 +116,7 @@ export function EventSheet({
             <label className="flex flex-col gap-1.5">
               <span className="text-sm text-foreground/70">
                 {selected.emoji} {selected.label} &middot;{" "}
-                <strong
-                  className={delta >= 0 ? "text-green-600" : "text-red-500"}
-                >
+                <strong className={deltaColorClass(delta)}>
                   {intensityLabel(delta)}
                 </strong>{" "}
                 ({delta > 0 ? `+${delta}` : delta})
