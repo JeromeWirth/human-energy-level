@@ -20,6 +20,9 @@ export interface DaySnapshotEvent {
 export interface DaySnapshot {
   level: number;
   generatedAt: number;
+  /** The sharer's local date, pre-formatted at share time so the viewer
+   *  sees the sharer's actual day rather than a server-timezone reformat. */
+  dateLabel: string;
   username: string;
   events: DaySnapshotEvent[];
 }
@@ -39,6 +42,11 @@ export function buildDaySnapshot(
   return {
     level,
     generatedAt: Date.now(),
+    dateLabel: new Date().toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }),
     username,
     events: events
       .filter((e) => isToday(e.timestamp))
@@ -103,6 +111,7 @@ export function decodeDaySnapshot(code: string): DaySnapshot | null {
       parsed === null ||
       !isFiniteNumber(parsed.level) ||
       !isFiniteNumber(parsed.generatedAt) ||
+      !isBoundedString(parsed.dateLabel, MAX_TEXT_LENGTH) ||
       !isBoundedString(parsed.username, MAX_USERNAME_LENGTH) ||
       !Array.isArray(parsed.events) ||
       parsed.events.length > MAX_SNAPSHOT_EVENTS ||
@@ -114,6 +123,7 @@ export function decodeDaySnapshot(code: string): DaySnapshot | null {
     return {
       level: clampLevel(parsed.level),
       generatedAt: parsed.generatedAt,
+      dateLabel: parsed.dateLabel,
       username: parsed.username,
       events: parsed.events,
     };
