@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useEnergy } from "@/lib/energy-context";
 import { BackupSheet } from "@/components/BackupSheet";
 
@@ -98,6 +99,11 @@ export default function SettingsPage() {
             Restore from code
           </button>
         </div>
+      </section>
+
+      <section className="border-t border-foreground/10 pt-6 flex gap-4 text-xs text-foreground/45">
+        <a href="https://jeromewirth.de/impressum">Impressum</a>
+        <Link href="/datenschutz">Datenschutz</Link>
       </section>
 
       {backupMode && (
