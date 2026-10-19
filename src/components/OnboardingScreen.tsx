@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { BatteryGauge } from "./BatteryGauge";
 import { useEnergy } from "@/lib/energy-context";
 
@@ -106,6 +107,11 @@ export function OnboardingScreen() {
       >
         Restore from a backup code instead
       </button>
+
+      <p className="flex gap-4 text-xs text-foreground/40">
+        <a href="https://jeromewirth.de/impressum">Impressum</a>
+        <Link href="/datenschutz">Datenschutz</Link>
+      </p>
     </div>
   );
 }
